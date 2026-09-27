@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Predicción de Recaudación Tributaria</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f2f4f7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .contenedor {
+            width: 100%;
+            max-width: 850px;
+            background: white;
+            border-radius: 15px;
+            padding: 35px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+        }
+
+        .titulo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .titulo h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .titulo p {
+            color: #6b7280;
+        }
+
+        .formulario {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo label {
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .campo input,
+        .campo select {
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .campo input:focus,
+        .campo select:focus {
+            border-color: #2563eb;
+        }
+
+        .boton-container {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #resultado {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .resultado-exito {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+
+        .resultado-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .valor {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 700px) {
+
+            .formulario {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="contenedor">
+
+    <div class="titulo">
+
+        <h1>📊 Predicción de Recaudación Tributaria</h1>
+
+        <p>
+            Modelo de Machine Learning - Random Forest
+        </p>
+
+    </div>
+
+
+    <form id="formulario" class="formulario">
+
+
+        <!-- AÑO -->
+
+        <div class="campo">
+
+            <label for="ANIO">
+                Año
+            </label>
+
+            <input
+                type="number"
+                id="ANIO"
+                value="2026"
+                required
+            >
+
+        </div>
+
+
+        <!-- MES -->
+
+        <div class="campo">
+
+            <label for="MES_NUM">
+                Mes
+            </label>
+
+            <select id="MES_NUM" required>
+
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+
+            </select>
+
+        </div>
+
+
+        <!-- GRUPO IMPUESTO -->
+
+        <div class="campo">
+
+            <label for="GRUPO_IMPUESTO">
+                Grupo de impuesto
+            </label>
+
+            <input
+                type="text"
+                id="GRUPO_IMPUESTO"
+                value="IVA"
+                required
+            >
+
+        </div>
+
+
+        <!-- SUBGRUPO -->
+
+        <div class="campo">
+
+            <label for="SUBGRUPO_IMPUESTO">
+                Subgrupo de impuesto
+            </label>
+
+            <input
+                type="text"
+                id="SUBGRUPO_IMPUESTO"
+                value="IMPUESTOS INTERNOS"
+                required
+            >
+
+        </div>
+
+
+        <!-- IMPUESTO -->
+
+        <div class="campo">
+
+            <label for="IMPUESTO">
+                Impuesto
+            </label>
+
+            <input
+                type="text"
+                id="IMPUESTO"
+                value="IVA MENSUAL"
+                required
+            >
+
+        </div>
+
+
+        <!-- GRAN CONTRIBUYENTE -->
+
+        <div class="campo">
+
+            <label for="GRAN_CONTRIBUYENTE">
+                Gran contribuyente
+            </label>
+
+            <select id="GRAN_CONTRIBUYENTE">
+
+                <option value="SI">
+                    SI
+                </option>
+
+                <option value="NO">
+                    NO
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- CODIGO OPERACION -->
+
+        <div class="campo">
+
+            <label for="CODIGO_OPERA_FAMILIA">
+                Código operación familia
+            </label>
+
+            <input
+                type="text"
+                id="CODIGO_OPERA_FAMILIA"
+                value="001"
+                required
+            >
+
+        </div>
+
+
+        <!-- TIPO CONTRIBUYENTE -->
+
+        <div class="campo">
+
+            <label for="TIPO_CONTRIBUYENTE">
+                Tipo de contribuyente
+            </label>
+
+            <select id="TIPO_CONTRIBUYENTE">
+
+                <option value="SOCIEDADES">
+                    SOCIEDADES
+                </option>
+
+                <option value="PERSONAS NATURALES">
+                    PERSONAS NATURALES
+                </option>
+
+                <option value="NO TIENE">
+                    NO TIENE
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- PROVINCIA -->
+
+        <div class="campo">
+
+            <label for="PROVINCIA">
+                Provincia
+            </label>
+
+            <input
+                type="text"
+                id="PROVINCIA"
+                value="PICHINCHA"
+                required
+            >
+
+        </div>
+
+
+        <!-- CANTON -->
+
+        <div class="campo">
+
+            <label for="CANTON">
+                Cantón
+            </label>
+
+            <input
+                type="text"
+                id="CANTON"
+                value="QUITO"
+                required
+            >
+
+        </div>
+
+
+        <!-- BOTÓN -->
+
+        <div class="boton-container">
+
+            <button type="submit">
+
+                🔮 Realizar predicción
+
+            </button>
+
+        </div>
+
+
+    </form>
+
+
+    <!-- RESULTADO -->
+
+    <div id="resultado">
+
+        <h2>
+            Resultado de la predicción
+        </h2>
+
+        <div
+            id="valor"
+            class="valor"
+        ></div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+    // ============================================
+    // FORMULARIO
+    // ============================================
+
+    const formulario = document.getElementById("formulario");
+
+    const resultado = document.getElementById("resultado");
+
+    const valor = document.getElementById("valor");
+
+
+    // ============================================
+    // EVENTO SUBMIT
+    // ============================================
+
+    formulario.addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+
+        // ========================================
+        // CREAR OBJETO CON LOS DATOS
+        // ========================================
+
+        const datos = {
+
+            ANIO: parseInt(
+                document.getElementById("ANIO").value
+            ),
+
+            MES_NUM: parseInt(
+                document.getElementById("MES_NUM").value
+            ),
+
+            GRUPO_IMPUESTO:
+                document.getElementById("GRUPO_IMPUESTO").value,
+
+            SUBGRUPO_IMPUESTO:
+                document.getElementById("SUBGRUPO_IMPUESTO").value,
+
+            IMPUESTO:
+                document.getElementById("IMPUESTO").value,
+
+            GRAN_CONTRIBUYENTE:
+                document.getElementById("GRAN_CONTRIBUYENTE").value,
+
+            CODIGO_OPERA_FAMILIA:
+                document.getElementById("CODIGO_OPERA_FAMILIA").value,
+
+            TIPO_CONTRIBUYENTE:
+                document.getElementById("TIPO_CONTRIBUYENTE").value,
+
+            PROVINCIA:
+                document.getElementById("PROVINCIA").value,
+
+            CANTON:
+                document.getElementById("CANTON").value
+
+        };
+
+
+        // ========================================
+        // MOSTRAR MENSAJE DE CARGA
+        // ========================================
+
+        resultado.style.display = "block";
+
+        resultado.className = "";
+
+        valor.innerHTML = "⏳ Calculando...";
+
+
+        // ========================================
+        // CONSUMIR LA API
+        // ========================================
+
+        try {
+
+            const respuesta = await fetch(
+                "/predict",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(datos)
+                }
+            );
+
+
+            // ====================================
+            // CONVERTIR RESPUESTA A JSON
+            // ====================================
+
+            const informacion = await respuesta.json();
+
+
+            // ====================================
+            // VERIFICAR RESPUESTA
+            // ====================================
+
+            if (!respuesta.ok) {
+
+                throw new Error(
+                    informacion.detail ||
+                    "Error al realizar la predicción"
+                );
+
+            }
+
+
+            // ====================================
+            // MOSTRAR RESULTADO
+            // ====================================
+
+            const prediccion =
+                informacion.valor_recaudado_predicho;
+
+
+            resultado.className =
+                "resultado-exito";
+
+
+            valor.innerHTML =
+                "$ " +
+                prediccion.toLocaleString(
+                    "es-EC",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                );
+
+
+        }
+
+        catch (error) {
+
+            resultado.className =
+                "resultado-error";
+
+            valor.innerHTML =
+                "❌ " + error.message;
+
+        }
+
+    });
+
+
+</script>
+
+
+</body>
+
+</html>
